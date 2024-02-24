@@ -23,16 +23,16 @@ export class GetStatementOperationUseCase {
     const user = await this.usersRepository.findById(user_id);
 
     if(!user) {
-      throw new GetStatementOperationError.UserNotFound();
+      throw new GetStatementOperationError.GetStatementOperationUserNotFound();
     }
 
     const statementOperation = await this.statementsRepository
       .findStatementOperation({ user_id, statement_id });
 
-      if(!statementOperation) {
-        throw new GetStatementOperationError.StatementNotFound();
-      }
+    if(!statementOperation) {
+      throw new GetStatementOperationError.GetStatementOperationStatementNotFound();
+    }
 
-      return statementOperation;
+    return statementOperation;
   }
 }
