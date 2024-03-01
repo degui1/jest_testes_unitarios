@@ -37,8 +37,6 @@ export class CreateStatementUseCase {
       description
     });
 
-    console.log(statementOperation);
-
     return statementOperation;
   }
 }

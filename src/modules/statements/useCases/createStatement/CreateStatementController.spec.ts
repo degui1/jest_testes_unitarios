@@ -40,12 +40,99 @@ describe("Create statement", () => {
       .post("/api/v1/statements/deposit")
       .send({
         amount: 10000,
-        description: "deposit"
+        description: "deposit",
       })
       .set({
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       });
 
-    console.log(response.body);
+    expect(response.status).toBe(201);
+    expect(response.body).toHaveProperty("id");
+  });
+
+  it("Should be able to create a new withdraw statement", async () => {
+    const user = {
+      name: "User test withdraw",
+      email: "withdraw@gmail.com",
+      password: "123",
+    };
+
+    await request(app).post("/api/v1/users").send(user);
+
+    const responseToken = await request(app)
+      .post("/api/v1/sessions")
+      .send({
+        email: user.email,
+        password: user.password,
+      });
+
+    const { token } = responseToken.body;
+
+    await request(app)
+      .post("/api/v1/statements/deposit")
+      .send({
+        amount: 10000,
+        description: "deposit",
+      })
+      .set({
+        Authorization: `Bearer ${token}`,
+      });
+
+    const response = await request(app)
+      .post("/api/v1/statements/withdraw")
+      .send({
+        amount: 5000,
+        description: "withdraw",
+      })
+      .set({
+        Authorization: `Bearer ${token}`,
+      });
+
+    expect(response.status).toBe(201);
+    expect(response.body).toHaveProperty("id");
+    expect(response.body).toHaveProperty("amount");
+    expect(response.body.amount).toBe(5000);
+  });
+
+  it("Should not be able to create a statement with not found an user", async () => {
+    const response = await request(app)
+      .post("/api/v1/statements/deposit")
+      .send({
+        amount: 10000,
+        description: "Should not be able to create a new statement",
+      });
+
+    expect(response.status).toBe(401);
+  });
+
+  it("Should not be able to create a new withdraw statement with insufficient funds", async () => {
+    const user = {
+      name: "Insufficient funds",
+      email: "funds@email.com",
+      password: "123",
+    };
+
+    await request(app).post("/api/v1/users").send(user);
+
+    const responseToken = await request(app)
+      .post("/api/v1/sessions")
+      .send({
+        email: user.email,
+        password: user.password,
+      });
+
+    const { token } = responseToken.body;
+
+    const response = await request(app)
+      .post("/api/v1/statements/withdraw")
+      .send({
+        amount: 10000,
+        description: "Insufficient funds",
+      })
+      .set({
+        Authorization: `Bearer ${token}`,
+      });
+
+    expect(response.status).toBe(400);
   });
 });
